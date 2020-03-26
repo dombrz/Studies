@@ -1,1 +1,539 @@
 
+#include "pch.h"
+#include <iostream>
+#include <ctime>
+#include <chrono>
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <conio.h>
+#include <math.h>
+using namespace std;
+
+
+
+//                 QUICKSORT
+template <class item>
+void quicksort(item  *data, int left, int right)
+{
+	int temp;
+	int lower = left;
+	int upper = right;
+	int bound = data[(left + right) / 2];
+	do
+	{
+		while (data[lower] < bound)
+			lower++;
+
+		while (data[upper] > bound)
+			upper--;
+
+		if (lower <= upper)
+		{
+			
+			temp = data[lower];
+			data[lower] = data[upper];
+			data[upper] = temp;
+			lower++;
+			upper--;
+		}
+	} while (lower <= upper);
+
+	if (left < upper) quicksort(data, left, upper);
+
+	if (right > lower) quicksort(data, lower, right);
+}
+
+
+//               SORTUJ MALEJĄCO
+template<class item>
+void reversequicksort(item data[], int first, int last)
+{
+	int lower = first + 1, upper = last;
+	swap(data[first], data[(first + last) / 2]);
+	item bound = data[first];
+	while (lower <= upper)
+	{
+		while (data[lower] > bound)
+			lower++;
+		while (bound > data[upper])
+			upper--;
+		if (lower < upper)
+			swap(data[lower++], data[upper--]);
+		else lower++;
+	}
+	swap(data[upper], data[first]);
+	if (first < upper - 1)
+		reversequicksort(data, first, upper - 1);
+	if (upper + 1 < last)
+		reversequicksort(data, upper + 1, last);
+}
+
+
+
+
+//                MERGESORT
+//////////////////////////////////////////////////////////////
+//               funkcja scalająca
+template<typename item>
+void merge(item *data, item *tmp, int first, int mid, int last)
+{
+	for (int i = first; i <= last; i++) tmp[i] = data[i];
+
+	int i = first;
+	int j = mid + 1;
+	int q = first;
+
+	while (i <= mid && j <= last)
+	{
+		if (tmp[i] < tmp[j]) data[q++] = tmp[i++];
+		else data[q++] = tmp[j++];
+	}
+	while (i <= mid) data[q++] = tmp[i++];
+}
+
+
+//            funkcja główna mergesort
+template <class item>
+void mergesort(item *data, item*tmp, int first, int last)
+{
+
+	if (first < last) {
+		int mid = (first + last) / 2;
+		mergesort(data, tmp, first, mid);   
+		mergesort(data, tmp, mid + 1, last);   
+		merge(data, tmp, first, mid, last);   
+	}
+}
+/////////////////////////////////////////////////////////////////
+
+
+
+
+//          LOSOWANIE TABLIC
+template<class item>
+void draw(item table, int tab_size)
+{
+	for (int i = 0; i < tab_size; i++) {
+		table[i] = rand() % 1000;
+
+	}
+}
+
+
+//     WYBÓR ROZMIARU TABLIC
+size_t select_size()
+{
+	int size;
+	cout << "Rozmiar tablic: " << endl;
+	cout << "1. 10 000 " << endl;
+	cout << "2. 50 000 " << endl;
+	cout << "3. 100 000 " << endl;
+	cout << "4. 500 000 " << endl;
+	cout << "5. 1 000 000 " << endl;
+	size = _getch();
+	system("cls");
+	switch (size)
+	{
+	case '1':
+		size = 10000;
+		break;
+	case '2':
+		size = 50000;
+		break;
+	case '3':
+		size = 100000;
+		break;
+	case '4':
+		size = 500000;
+		break;
+	case '5':
+		size = 1000000;
+		break;
+	default:
+		size = select_size();
+		break;
+	}
+	return size;
+}
+
+
+
+//        SPRAWDZENIE POPRAWNOŚCI SORTOWANIA
+template <class item>
+bool check_tab(item & tab, int size)
+{
+	bool check = true;
+
+	for (int i = 0; i < size - 2; i++)
+	{
+		if (tab[i] > tab[i + 1])
+		{
+			check = false;
+		}
+		
+	}
+	return check;
+}
+
+
+
+//   WYŚWIETLANIE INFORMACJI O PRAWIDŁOWOŚCI SORTOWANIA
+void check_tab_info(bool info)
+{
+	if (info == true)
+	{
+		cout << "Tablice posortowane prawidlowo" << endl;
+	}
+	else
+	{
+		cout << "Tablice posortowane w nieprawidlowy sposób" << endl;
+	}
+}
+
+
+
+
+//                 INTROSORT
+///////////////////////////////////////////////////////////
+
+//    funkcja zamieniająca dwie wartości
+template <class Item>
+void exchange(Item *data, long i, long j)
+{
+	Item temp;
+	temp = data[i];
+	data[i] = data[j];
+	data[j] = temp;
+}
+
+//   funkcja licząca medianę z trzech liczb
+template <class Item>
+void medianofthree(Item *data, long &L, long &R)
+{
+	if (data[++L - 1] > data[--R])
+		exchange(data, L - 1, R);
+	if (data[L - 1] > data[R / 2])
+		exchange(data, L - 1, R / 2);
+	if (data[R / 2] > data[R])
+		exchange(data, R / 2, R);
+	exchange(data, R / 2, R - 1);
+}
+
+
+//  wyznaczenie podziału
+template <class Item>
+long partition(Item *data, long L, long R)
+{
+	long i, j;
+	if (R >= 3)
+		medianofthree(data, L, R);
+	for (i = L, j = R - 2; ; )
+	{
+		for (; data[i] < data[R - 1]; ++i);
+		for (; j >= L && data[j] > data[R - 1]; --j);
+		if (i < j)
+			exchange(data, i++, j--);
+		else break;
+	}
+	exchange(data, i, R - 1);
+	return i;
+}
+
+//   tworzenie sterty
+template <class Item>
+void heapify(Item *data, long i, long N)
+{
+	long j;
+	while (i <= N / 2)
+	{
+		j = 2 * i;
+		if (j + 1 <= N && data[j + 1] > data[j])
+			j = j + 1;
+		if (data[i] < data[j])
+			exchange(data, i, j);
+		else break;
+		i = j;
+	}
+}
+
+//    HEAPSORT
+template <class Item>
+void heapsort(Item *data, long N)
+{
+	long i;
+	for (i = N / 2; i > 0; --i)
+		heapify(data - 1, i, N);
+	for (i = N - 1; i > 0; --i)
+	{
+		exchange(data, 0, i);
+		heapify(data - 1, 1, i);
+	}
+}
+
+//      INSERTIONSORT
+template <class Item>
+void insertionsort(Item *data, long N)
+{
+	long i, j;
+	Item temp;
+	for (i = 1; i < N; ++i)
+	{
+		temp = data[i];
+		for (j = i; j > 0 && temp < data[j - 1]; --j)
+			data[j] = data[j - 1];
+		data[j] = temp;
+	}
+}
+
+
+
+//        INTROSORT
+////////////////////////////////////////
+template <class Item>
+void introsort(Item *data, long N, int M)
+{
+	long i;
+	if (M <= 0)
+	{
+		heapsort(data, N);
+		return;
+	}
+	i = partition(data, 0, N);
+	if (i > 9)
+		introsort(data, i, M - 1);
+	if (N - 1 - i > 9)
+		introsort(data + i + 1, N - 1 - i, M - 1);
+}
+
+template <class Item>
+void introspectivesort(Item *data, long N)
+{
+	introsort(data, N, (int)floor(2 * log(N)/M_LN2));
+	insertionsort(data, N);
+}
+//////////////////////////////////////
+
+
+//   ZLICZANIE CZASU 
+chrono::duration<double> sumTime(chrono::duration<double> time[], size_t size)
+{
+	chrono::duration<double> sumTime = (chrono::duration<double>)0;
+	for (size_t i = 0; i < size; i++)
+	{
+		sumTime += time[i];
+	}
+	return sumTime;
+}
+
+int main()
+{
+	const size_t table_amount = 100;     //  Ilośc tabli
+    std::cout << "Program sortujacy tablice"<<endl; 
+	auto start = chrono::system_clock::now();
+	auto end = chrono::system_clock::now();
+	chrono::duration<double> elapsed_seconds[table_amount];
+	srand(time(NULL));
+	size_t size = 0;
+	bool check;
+	 size=select_size();
+
+	 cout << "Wybrano tablice o rozmiarze:"<<" " <<size<<endl;
+
+	 int * tab=new int [size];
+
+	 int *tmp = new int[size];   //tablica pomocnicza - wykorzystywana do MERGESORT
+
+	 char choice;
+	 cout << "Wybierz rodzaj sortowania: " << endl;
+	 cout << "1. Wszystkie elementy tablicy losowe " << endl;
+	 cout << "2. N% poczatkowych elementow tablicy posortowane " << endl;
+	 cout << "3. Wszystkie elementy tablicy posortowane w odwrotne kolejnosci " << endl;
+	 choice = _getch();
+	 system("cls");
+	 switch (choice)
+	 {
+	 case '1':          // Wszystkie elementy tablicy losowe
+		 cout << "Sortowanie - wszystkie elementy tablicy losowe" << endl<<"Rozmiar tablic:"<<" "<<size << endl <<endl<<endl;
+
+
+		 cout << "Quicksort" << endl;
+
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size);
+             start = chrono::system_clock::now();
+			 quicksort(tab, 0, size - 1);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl<<endl;
+
+
+		 cout << "Mergesort" << endl;
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size);
+			 start = chrono::system_clock::now();
+			 mergesort(tab,tmp,0, size-1);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl << endl;
+
+
+		 cout << "Introsort" << endl;
+	
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size);
+			 start = chrono::system_clock::now();
+			 introspectivesort(tab, size);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl << endl;
+
+         break;
+
+
+
+
+	 case '2':                   // N% poczatkowych elementow tablicy posortowane
+		 float N;
+		 cout << "1. 25%" << endl;
+		 cout << "2. 50%" << endl;
+		 cout << "3. 75%" << endl;
+		 cout << "4. 95%" << endl;
+		 cout << "5. 99%" << endl;
+		 cout << "6. 99.7%" << endl;
+		 choice = _getch();
+		 if (choice == '1') N = 25;
+		 else if (choice == '2') N = 50;
+		 else if (choice == '3') N = 75;
+		 else if (choice == '4') N = 95;
+		 else if (choice == '5') N = 99;
+		 else if (choice == '6') N = 99.7;
+		
+		 system("cls");
+
+		 cout << "Sortowanie: "<<N<<" % poczatkowych elementow tablicy posortowane" << endl << "Rozmiar tablic: " << size << endl<< endl;
+
+
+		 cout << "Quicksort" << endl;
+
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size);
+			 quicksort(tab, 0, ((size - 1)*N)/100); //sortowanie N% początkowych elementów tablicy
+			 start = chrono::system_clock::now();
+			 quicksort(tab, 0, size - 1);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl << endl;
+		 
+
+		 cout << "Mergesort" << endl;
+
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size);
+			 quicksort(tab, 0, ((size - 1)*N) / 100);  //sortowanie N% początkowych elementów tablicy
+			 start = chrono::system_clock::now();
+			 mergesort(tab,tmp,  0 , size - 1);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl << endl;
+		 
+
+
+		 cout << "Introsort" << endl;
+
+		
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size); 
+			 quicksort(tab, 0, ((size - 1)*N) / 100); //sortowanie N% początkowych elementów tablicy
+			 start = chrono::system_clock::now();
+			 introspectivesort(tab, size);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl << endl;
+         
+		 break;
+
+
+
+	 case '3':                  //Wszystkie elementy tablicy posortowane w odwrotne kolejnosci 
+		
+		 cout << "Quicksort" << endl;
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size);
+			 reversequicksort(tab, 0, size - 1);  //Sortowanie tablicy w odwrotny sposób - malejąco
+			 start = chrono::system_clock::now();
+			 quicksort(tab, 0, size - 1);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl<<endl;
+			
+
+		 
+		 cout << "Mergesort" << endl;
+
+		 for (int j = 0; j < table_amount; j++)
+		 {
+		     draw(tab, size);
+			 reversequicksort(tab, 0, size - 1);  //Sortowanie tablicy w odwrotny sposób - malejąco
+			 start = chrono::system_clock::now();
+			 mergesort(tab, tmp, 0, size - 1);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl << endl;
+
+
+
+		 cout << "Introsort" << endl;
+
+		 for (int j = 0; j < table_amount; j++)
+		 {
+			 draw(tab, size);
+			 reversequicksort(tab, 0, size - 1);   //Sortowanie tablicy w odwrotny sposób - malejąco
+			 start = chrono::system_clock::now();
+			 introspectivesort(tab, size);
+			 end = chrono::system_clock::now();
+			 elapsed_seconds[j] = end - start;
+			 check = check_tab(tab, size);
+		 }
+		 check_tab_info(check);
+		 cout << "Sredni czas sortowania jednej tablicy: " << (sumTime(elapsed_seconds, table_amount).count() * 1000) / 100 << " ms" << endl << endl;
+		 
+		 break;
+
+	 }
+
+
+
+}
+
+
